@@ -20,18 +20,31 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
     internal val packageName: String
     internal val fileName: String?
     internal var classes = mutableListOf<ClassSpec>()
+    internal var imports = mutableListOf<ClassName>()
 
     init {
         this.packageName = builder.packageName
         this.fileName = builder.name
         this.classes = builder.classes
+        this.imports = builder.imports
     }
 
     class Builder internal constructor(internal val packageName: String, internal val name: String?) {
         internal val classes = mutableListOf<ClassSpec>()
+        internal var imports = mutableListOf<ClassName>()
 
         fun addClass(cls: ClassSpec): Builder {
             classes.add(cls)
+            return this
+        }
+
+        fun addImport(cln: ClassName): Builder {
+            imports.add(cln)
+            return this
+        }
+
+        fun addImports(vararg cln: ClassName): Builder {
+            imports.addAll(cln)
             return this
         }
 
@@ -42,6 +55,15 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
 
     override fun writeTo(out: Appendable?) {
         out?.append("package $packageName\n\n")
+
+        //TODO add aliases
+        imports.sortedBy { it.canonicalName }
+                .forEach {
+                    check(SourceVersion.isName(it.canonicalName), "not a valid name: %s", it.canonicalName)
+                    out?.append("import ${it.canonicalName}\n")
+                }
+
+        out?.append('\n')
 
         classes.forEach {
             it.writeTo(out)

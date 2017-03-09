@@ -1,9 +1,6 @@
 package ru.alexxxdev.sample
 
-import ru.alexxxdev.kGen.kotlinClass
-import ru.alexxxdev.kGen.kotlinFile
-import ru.alexxxdev.kGen.kotlinInterface
-import ru.alexxxdev.kGen.kotlinObject
+import ru.alexxxdev.kGen.*
 import java.io.File
 
 /**
@@ -14,6 +11,13 @@ fun main(args: Array<String>) {
 
     val file = File("src")
     kotlinFile("ru.alexxxdev.sample", "Test") {
+
+        import("ru.alexxxdev.sample.Test1")
+        import(ClassName.get("ru.alexxxdev.sample", "Test2"))
+        import(java.lang.String::class.java)
+        import(String::class)
+
+
         kotlinClass("Test1") {}
 
         kotlinInterface("Test2") {}
