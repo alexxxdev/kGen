@@ -37,6 +37,15 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
     }
 
     override fun writeTo(out: Appendable?) {
+        when (kind) {
+            ClassSpec.Kind.CLASS ->
+                out?.append("class $name")
+            ClassSpec.Kind.INTERFACE ->
+                out?.append("interface $name")
+            ClassSpec.Kind.OBJECT ->
+                out?.append("object $name")
+        }
 
+        out?.append("\n")
     }
 }
