@@ -67,3 +67,35 @@ fun KotlinFile.Builder.imports(vararg jclass: Class<out Any>) {
 fun KotlinFile.Builder.imports(vararg kclass: KClass<out Any>) {
     this.addImports(*kclass.map { ClassName.get(it) }.toTypedArray())
 }
+
+fun KotlinFile.Builder.method(name: String, init: MethodSpec.Builder.() -> Unit): MethodSpec {
+    val methodSpec = MethodSpec.Builder(name)
+    methodSpec.init()
+    val method = methodSpec.build()
+    this.addMethod(method)
+    return method
+}
+
+fun ClassSpec.Builder.method(name: String, init: MethodSpec.Builder.() -> Unit): MethodSpec {
+    val methodSpec = MethodSpec.Builder(name)
+    methodSpec.init()
+    val method = methodSpec.build()
+    this.addMethod(method)
+    return method
+}
+
+fun MethodSpec.Builder.returns(value: String, name: String) {
+    this.addReturns(value, ClassName.get(name))
+}
+
+fun MethodSpec.Builder.returns(value: String, className: ClassName) {
+    this.addReturns(value, className)
+}
+
+fun MethodSpec.Builder.returns(value: String, jclass: Class<out Any>) {
+    this.addReturns(value, ClassName.get(jclass))
+}
+
+fun MethodSpec.Builder.returns(value: String, kclass: KClass<out Any>) {
+    this.addReturns(value, ClassName.get(kclass))
+}

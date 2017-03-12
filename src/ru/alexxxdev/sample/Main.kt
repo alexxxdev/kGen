@@ -12,16 +12,29 @@ fun main(args: Array<String>) {
     val file = File("src")
     kotlinFile("ru.alexxxdev.sample", "Test") {
 
-        import("ru.alexxxdev.sample.Test1")
-        import(ClassName.get("ru.alexxxdev.sample", "Test2"))
-        import(java.lang.String::class.java)
         import(String::class)
 
+        kotlinClass("Test1") {
+            method("ww1") {
+                returns("0", ClassName.get(Int::class))
+            }
+        }
 
-        kotlinClass("Test1") {}
+        kotlinInterface("Test2") {
+            method("ww1") {
+                returns(".05f", ClassName.get(Float::class))
+            }
+            method("ww2") {}
+        }
 
-        kotlinInterface("Test2") {}
+        kotlinObject("Test3") {
+            method("ww1") {}
+        }
 
-        kotlinObject("Test3") {}
+        method("ww1") {
+            returns("\"test\"", ClassName.get(String::class))
+        }
+        method("ww2") {}
+
     }.writeTo(file)
 }
