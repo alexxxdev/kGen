@@ -7,27 +7,35 @@ import javax.lang.model.SourceVersion
  */
 class MethodSpec private constructor(builder: Builder) : IAppendable {
 
+    private var imports = mutableListOf<ClassName>()
+
     internal data class Returns(val value: String, val type: ClassName)
 
     internal val name: String
     internal var ret: Returns? = null
     internal var body: StringBuffer? = null
-    private var imports = mutableListOf<ClassName>()
+    internal var mods: Array<out Modifier> = emptyArray()
 
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
     init {
         this.name = builder.name
         this.ret = builder.ret
+        this.mods = builder.mods
 
         ret?.let { imports.add(it.type) }
     }
 
     class Builder internal constructor(internal val name: String) {
         internal var ret: Returns? = null
+        internal var mods: Array<out Modifier> = emptyArray()
 
         fun addReturns(value: String, className: ClassName) {
             ret = Returns(value, className)
+        }
+
+        fun addModifiers(vararg modifiers: Modifier) {
+            mods = modifiers
         }
 
         fun build(): MethodSpec {
@@ -37,7 +45,22 @@ class MethodSpec private constructor(builder: Builder) : IAppendable {
 
     override fun writeTo(tab: String, out: Appendable?) {
         check(SourceVersion.isName(name), "not a valid name: %s", name)
-        out?.append(tab)?.append("fun $name()")
+        if (mods.isEmpty()) {
+            out?.append(tab)?.append("fun $name()")
+        } else {
+            out?.append(tab)
+            mods.forEach {
+                when (it) {
+                    Modifier.DEFAULT -> {
+                    }
+                    else -> {
+                        out?.append(it.name.toLowerCase())?.append(' ')
+                    }
+                }
+            }
+            out?.append("fun $name()")
+        }
+
         if (body != null) {
             ret?.let {
                 out?.append(": ${it.type.name}")

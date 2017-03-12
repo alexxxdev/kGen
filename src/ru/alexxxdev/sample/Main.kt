@@ -15,12 +15,15 @@ fun main(args: Array<String>) {
         import(String::class)
 
         kotlinClass("Test1") {
+            modifiers(Modifier.OPEN)
             method("ww1") {
+                modifiers(Modifier.OPEN)
                 returns("0", ClassName.get(Int::class))
             }
         }
 
         kotlinInterface("Test2") {
+            modifiers(Modifier.ABSTRACT)
             method("ww1") {
                 returns(".05f", ClassName.get(Float::class))
             }
@@ -28,6 +31,7 @@ fun main(args: Array<String>) {
         }
 
         kotlinObject("Test3") {
+            modifiers(Modifier.PRIVATE)
             method("ww1") {}
         }
 

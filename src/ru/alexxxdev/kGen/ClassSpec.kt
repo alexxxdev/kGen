@@ -24,6 +24,7 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
     internal var name: String
     internal var kind: Kind
     internal var methods = mutableListOf<MethodSpec>()
+    internal var mods: Array<out Modifier> = emptyArray()
     private var imports = mutableListOf<ClassName>()
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
@@ -31,6 +32,7 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         this.name = builder.name
         this.kind = builder.kind
         this.methods = builder.methods
+        this.mods = builder.mods
 
         methods.forEach {
             imports.addAll(it.listImports)
@@ -39,10 +41,15 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
 
     class Builder internal constructor(internal val kind: Kind, internal val name: String) {
         internal var methods = mutableListOf<MethodSpec>()
+        internal var mods: Array<out Modifier> = emptyArray()
 
         fun addMethod(methodSpec: MethodSpec): ClassSpec.Builder {
             methods.add(methodSpec)
             return this
+        }
+
+        fun addModifiers(vararg modifiers: Modifier) {
+            mods = modifiers
         }
 
         fun build(): ClassSpec {
@@ -51,6 +58,16 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
     }
 
     override fun writeTo(tab: String, out: Appendable?) {
+        mods.forEach {
+            when (it) {
+                Modifier.DEFAULT -> {
+                }
+                else -> {
+                    out?.append(it.name.toLowerCase())?.append(' ')
+                }
+            }
+        }
+
         when (kind) {
             ClassSpec.Kind.CLASS ->
                 out?.append("class $name")

@@ -99,3 +99,11 @@ fun MethodSpec.Builder.returns(value: String, jclass: Class<out Any>) {
 fun MethodSpec.Builder.returns(value: String, kclass: KClass<out Any>) {
     this.addReturns(value, ClassName.get(kclass))
 }
+
+fun MethodSpec.Builder.modifiers(vararg modifier: Modifier) {
+    this.addModifiers(*modifier)
+}
+
+fun ClassSpec.Builder.modifiers(vararg modifier: Modifier) {
+    this.addModifiers(*modifier)
+}
