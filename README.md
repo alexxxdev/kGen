@@ -10,49 +10,50 @@ val file = File("src")
 
         import(String::class)
 
-        field("test3", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
+        field("field1", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
             className(ClassName.get(File::class))
             init { "null" }
         }
-        field("test2", FieldSpec.READONLY, FieldSpec.NOTNULL) {
+        
+        field("field2", FieldSpec.READONLY, FieldSpec.NOTNULL) {
             init { "0" }
         }
 
-        kotlinClass("Test1") {
+        kotlinClass("Class1") {
             modifiers(Modifier.OPEN)
 
-            field("test", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
+            field("field1", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
                 className(ClassName.get(File::class))
                 init { "null" }
             }
 
-            field("abs", FieldSpec.MUTABLE, FieldSpec.NOTNULL) {
+            field("field2", FieldSpec.MUTABLE, FieldSpec.NOTNULL) {
                 className(ClassName.get(File::class))
-                init { "File()" }
+                init { "File(\"test.txt\")" }
             }
 
-            method("ww1") {
+            method("fun1") {
                 modifiers(Modifier.OPEN)
                 returns("0", ClassName.get(Int::class))
             }
         }
 
-        kotlinInterface("Test2") {
+        kotlinInterface("Interface1") {
             modifiers(Modifier.ABSTRACT)
-            method("ww1") {
+            method("fun1") {
                 returns(".05f", ClassName.get(Float::class))
             }
-            method("ww2") {}
+            method("fun2") {}
         }
 
-        kotlinObject("Test3") {
+        kotlinObject("Object1") {
             modifiers(Modifier.PRIVATE)
-            method("ww1") {}
+            method("fun1") {}
         }
 
-        method("ww1") {
+        method("fun1") {
             returns("\"test\"", ClassName.get(String::class))
         }
-        method("ww2") {}
+        method("fun2") {}
 
     }.writeTo(file)
