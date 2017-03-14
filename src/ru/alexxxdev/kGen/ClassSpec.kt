@@ -25,7 +25,10 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
     internal var kind: Kind
     internal var methods = mutableListOf<MethodSpec>()
     internal var mods: Array<out Modifier> = emptyArray()
+    internal var fields = mutableListOf<FieldSpec>()
+
     private var imports = mutableListOf<ClassName>()
+
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
     init {
@@ -33,8 +36,13 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         this.kind = builder.kind
         this.methods = builder.methods
         this.mods = builder.mods
+        this.fields = builder.fields
 
         methods.forEach {
+            imports.addAll(it.listImports)
+        }
+
+        fields.forEach {
             imports.addAll(it.listImports)
         }
     }
@@ -42,14 +50,21 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
     class Builder internal constructor(internal val kind: Kind, internal val name: String) {
         internal var methods = mutableListOf<MethodSpec>()
         internal var mods: Array<out Modifier> = emptyArray()
+        internal var fields = mutableListOf<FieldSpec>()
 
         fun addMethod(methodSpec: MethodSpec): ClassSpec.Builder {
             methods.add(methodSpec)
             return this
         }
 
-        fun addModifiers(vararg modifiers: Modifier) {
+        fun addModifiers(vararg modifiers: Modifier): ClassSpec.Builder {
             mods = modifiers
+            return this
+        }
+
+        fun addField(field: FieldSpec): ClassSpec.Builder {
+            fields.add(field)
+            return this
         }
 
         fun build(): ClassSpec {
@@ -80,6 +95,14 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         codeWriter.out("{\n")
 
         codeWriter.indent()
+
+        fields.sortedBy { it.name }
+                .forEach {
+                    codeWriter.out("\n")
+                    it.writeTo(codeWriter)
+                }
+
+        codeWriter.out("\n")
 
         methods.sortedBy { it.name }
                 .forEach {

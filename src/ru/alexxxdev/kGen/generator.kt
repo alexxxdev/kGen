@@ -111,3 +111,23 @@ fun MethodSpec.Builder.modifiers(vararg modifier: Modifier) {
 fun ClassSpec.Builder.modifiers(vararg modifier: Modifier) {
     this.addModifiers(*modifier)
 }
+
+fun KotlinFile.Builder.field(name: String, type: Int = FieldSpec.READONLY, typeValue: Int = FieldSpec.NOTNULL, init: FieldSpec.Builder.() -> Unit = {}): FieldSpec {
+    val fieldSpec = FieldSpec.Builder(name, type, typeValue)
+    fieldSpec.init()
+    val field = fieldSpec.build()
+    this.addField(field)
+    return field
+}
+
+fun FieldSpec.Builder.init(initializer: FieldSpec.Builder.() -> String) {
+    this.initializer(initializer())
+}
+
+fun ClassSpec.Builder.field(name: String, type: Int = FieldSpec.READONLY, typeValue: Int = FieldSpec.NOTNULL, init: FieldSpec.Builder.() -> Unit = {}): FieldSpec {
+    val fieldSpec = FieldSpec.Builder(name, type, typeValue)
+    fieldSpec.init()
+    val field = fieldSpec.build()
+    this.addField(field)
+    return field
+}

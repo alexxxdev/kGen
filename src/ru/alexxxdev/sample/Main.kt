@@ -15,8 +15,27 @@ fun main(args: Array<String>) {
 
         import(String::class)
 
+        field("test3", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
+            className(ClassName.get(File::class))
+            init { "null" }
+        }
+        field("test2", FieldSpec.READONLY, FieldSpec.NOTNULL) {
+            init { "0" }
+        }
+
         kotlinClass("Test1") {
             modifiers(Modifier.OPEN)
+
+            field("test", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
+                className(ClassName.get(File::class))
+                init { "null" }
+            }
+
+            field("abs", FieldSpec.MUTABLE, FieldSpec.NOTNULL) {
+                className(ClassName.get(File::class))
+                init { "File()" }
+            }
+
             method("ww1") {
                 modifiers(Modifier.OPEN)
                 returns("0", ClassName.get(Int::class))

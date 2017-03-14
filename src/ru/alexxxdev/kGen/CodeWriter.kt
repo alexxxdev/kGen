@@ -3,7 +3,7 @@ package ru.alexxxdev.kGen
 /**
  * Created by alexxxdev on 14.03.17.
  */
-class CodeWriter(val out: Appendable?, var indent: String) {
+class CodeWriter(private val out: Appendable?, private var indent: String) {
     private var indentLevel = 0
     private var trailingNewline = false
 

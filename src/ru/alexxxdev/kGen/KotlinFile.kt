@@ -22,6 +22,7 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
     internal var classes = mutableListOf<ClassSpec>()
     internal var imports = mutableListOf<ClassName>()
     internal var methods = mutableListOf<MethodSpec>()
+    internal var fields = mutableListOf<FieldSpec>()
     internal val indent: String
 
     init {
@@ -30,6 +31,7 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
         this.classes = builder.classes
         this.imports = builder.imports
         this.methods = builder.methods
+        this.fields = builder.fields
         this.indent = builder.indent
 
         classes.forEach {
@@ -39,12 +41,17 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
         methods.forEach {
             imports.addAll(it.listImports)
         }
+
+        fields.forEach {
+            imports.addAll(it.listImports)
+        }
     }
 
     class Builder internal constructor(internal val packageName: String, internal val name: String?) {
         internal val classes = mutableListOf<ClassSpec>()
         internal var imports = mutableListOf<ClassName>()
         internal var methods = mutableListOf<MethodSpec>()
+        internal var fields = mutableListOf<FieldSpec>()
         internal var indent = "\t"
 
         fun addClass(cls: ClassSpec): Builder {
@@ -75,6 +82,10 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
             this.indent = indent
             return this
         }
+
+        fun addField(field: FieldSpec) {
+            fields.add(field)
+        }
     }
 
     override fun writeTo(codeWriter: CodeWriter) {
@@ -89,8 +100,18 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
                     codeWriter.out("import ${it.canonicalName}\n")
                 }
 
+        codeWriter.out("\n")
+
+        fields.sortedBy { it.name }
+                .forEach {
+                    codeWriter.out("\n")
+                    it.writeTo(codeWriter)
+                }
+
+        codeWriter.out("\n")
+
         classes.forEach {
-            codeWriter.out("\n\n")
+            codeWriter.out("\n")
             it.writeTo(codeWriter)
         }
 
