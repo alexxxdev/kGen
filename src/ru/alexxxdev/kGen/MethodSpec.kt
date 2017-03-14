@@ -43,38 +43,37 @@ class MethodSpec private constructor(builder: Builder) : IAppendable {
         }
     }
 
-    override fun writeTo(tab: String, out: Appendable?) {
+    override fun writeTo(codeWriter: CodeWriter) {
         check(SourceVersion.isName(name), "not a valid name: %s", name)
         if (mods.isEmpty()) {
-            out?.append(tab)?.append("fun $name()")
+            codeWriter.out("fun $name()")
         } else {
-            out?.append(tab)
             mods.forEach {
                 when (it) {
                     Modifier.DEFAULT -> {
                     }
                     else -> {
-                        out?.append(it.name.toLowerCase())?.append(' ')
+                        codeWriter.out("${it.name.toLowerCase()} ")
                     }
                 }
             }
-            out?.append("fun $name()")
+            codeWriter.out("fun $name()")
         }
 
         if (body != null) {
             ret?.let {
-                out?.append(": ${it.type.name}")
+                codeWriter.out(": ${it.type.name}")
             }
-            out?.append(" {\n")
+            codeWriter.out(" {\n")
             ret?.let {
-                out?.append(tab)?.append("\treturn ${it.value}\n")
+                codeWriter.out("\treturn ${it.value}\n")
             }
-            out?.append(tab)?.append("}\n")
+            codeWriter.out("}\n")
         } else {
             if (ret != null) {
-                out?.append(" = ${ret?.value}\n")
+                codeWriter.out(" = ${ret?.value}\n")
             } else {
-                out?.append(" { }\n")
+                codeWriter.out(" { }\n")
             }
         }
     }

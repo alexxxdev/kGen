@@ -11,6 +11,7 @@ fun main(args: Array<String>) {
 
     val file = File("src")
     kotlinFile("ru.alexxxdev.sample", "Test") {
+        indent("\t")
 
         import(String::class)
 

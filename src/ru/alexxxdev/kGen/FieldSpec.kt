@@ -17,7 +17,7 @@ class FieldSpec private constructor(builder: Builder) : IAppendable {
         }
     }
 
-    override fun writeTo(tab: String, out: Appendable?) {
+    override fun writeTo(codeWriter: CodeWriter) {
 
     }
 }

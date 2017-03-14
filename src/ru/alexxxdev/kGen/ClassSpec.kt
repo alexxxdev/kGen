@@ -57,36 +57,38 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         }
     }
 
-    override fun writeTo(tab: String, out: Appendable?) {
+    override fun writeTo(codeWriter: CodeWriter) {
         mods.forEach {
             when (it) {
                 Modifier.DEFAULT -> {
                 }
                 else -> {
-                    out?.append(it.name.toLowerCase())?.append(' ')
+                    codeWriter.out("${it.name.toLowerCase()} ")
                 }
             }
         }
 
         when (kind) {
             ClassSpec.Kind.CLASS ->
-                out?.append("class $name")
+                codeWriter.out("class $name")
             ClassSpec.Kind.INTERFACE ->
-                out?.append("interface $name")
+                codeWriter.out("interface $name")
             ClassSpec.Kind.OBJECT ->
-                out?.append("object $name")
+                codeWriter.out("object $name")
         }
 
-        out?.append("{")
+        codeWriter.out("{\n")
 
-        out?.append("\n")
+        codeWriter.indent()
 
         methods.sortedBy { it.name }
-                .forEachIndexed { index, methodSpec ->
-                    methodSpec.writeTo("\t", out)
-                    if (index < methods.size - 1) out?.append("\n")
+                .forEach {
+                    codeWriter.out("\n")
+                    it.writeTo(codeWriter)
                 }
 
-        out?.append("}\n")
+        codeWriter.unindent()
+
+        codeWriter.out("}")
     }
 }

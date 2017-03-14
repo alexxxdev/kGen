@@ -22,6 +22,7 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
     internal var classes = mutableListOf<ClassSpec>()
     internal var imports = mutableListOf<ClassName>()
     internal var methods = mutableListOf<MethodSpec>()
+    internal val indent: String
 
     init {
         this.packageName = builder.packageName
@@ -29,6 +30,7 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
         this.classes = builder.classes
         this.imports = builder.imports
         this.methods = builder.methods
+        this.indent = builder.indent
 
         classes.forEach {
             imports.addAll(it.listImports)
@@ -43,6 +45,7 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
         internal val classes = mutableListOf<ClassSpec>()
         internal var imports = mutableListOf<ClassName>()
         internal var methods = mutableListOf<MethodSpec>()
+        internal var indent = "\t"
 
         fun addClass(cls: ClassSpec): Builder {
             classes.add(cls)
@@ -67,33 +70,42 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
         fun build(): KotlinFile {
             return KotlinFile(this)
         }
+
+        fun addIndent(indent: String): Builder {
+            this.indent = indent
+            return this
+        }
     }
 
-    override fun writeTo(tab: String, out: Appendable?) {
-        out?.append("package $packageName\n\n")
+    override fun writeTo(codeWriter: CodeWriter) {
+        codeWriter.out("package $packageName")
+        codeWriter.out("\n\n")
 
         //TODO add aliases
         imports.distinctBy { it.canonicalName }
                 .sortedBy { it.canonicalName }
                 .forEach {
                     check(SourceVersion.isName(it.canonicalName), "not a valid name: %s", it.canonicalName)
-                    out?.append("import ${it.canonicalName}\n")
+                    codeWriter.out("import ${it.canonicalName}\n")
                 }
-
-        out?.append('\n')
 
         classes.forEach {
-            it.writeTo(out = out)
-            out?.append("\n")
+            codeWriter.out("\n\n")
+            it.writeTo(codeWriter)
         }
 
-        out?.append('\n')
+        codeWriter.out("\n")
 
         methods.sortedBy { it.name }
-                .forEachIndexed { index, methodSpec ->
-                    methodSpec.writeTo(out = out)
-                    if (index < methods.size - 1) out?.append("\n")
+                .forEach {
+                    codeWriter.out("\n")
+                    it.writeTo(codeWriter)
                 }
+    }
+
+    fun writeTo(out: Appendable?) {
+        val codeWriter = CodeWriter(out, indent)
+        writeTo(codeWriter)
     }
 
     fun writeTo(directory: File) {

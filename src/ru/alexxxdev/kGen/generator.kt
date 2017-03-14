@@ -36,6 +36,10 @@ fun KotlinFile.Builder.kotlinObject(name: String, init: ClassSpec.Builder.() -> 
     return `class`
 }
 
+fun KotlinFile.Builder.indent(indent: String) {
+    this.addIndent(indent)
+}
+
 fun KotlinFile.Builder.import(name: String) {
     this.addImport(ClassName.get(name))
 }
