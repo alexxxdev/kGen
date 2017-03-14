@@ -108,18 +108,16 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
                     it.writeTo(codeWriter)
                 }
 
-        codeWriter.out("\n")
 
         classes.forEach {
-            codeWriter.out("\n")
+            codeWriter.out("\n\n")
             it.writeTo(codeWriter)
         }
 
-        codeWriter.out("\n")
 
         methods.sortedBy { it.name }
                 .forEach {
-                    codeWriter.out("\n")
+                    codeWriter.out("\n\n")
                     it.writeTo(codeWriter)
                 }
     }

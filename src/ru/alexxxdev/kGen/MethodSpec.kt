@@ -66,14 +66,14 @@ class MethodSpec private constructor(builder: Builder) : IAppendable {
             }
             codeWriter.out(" {\n")
             ret?.let {
-                codeWriter.out("\treturn ${it.value}\n")
+                codeWriter.out("\treturn ${it.value}")
             }
-            codeWriter.out("}\n")
+            codeWriter.out("}")
         } else {
             if (ret != null) {
-                codeWriter.out(" = ${ret?.value}\n")
+                codeWriter.out(" = ${ret?.value}")
             } else {
-                codeWriter.out(" { }\n")
+                codeWriter.out(" { }")
             }
         }
     }
