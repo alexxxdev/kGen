@@ -12,16 +12,21 @@ class ClassSpec(val kind: Kind, internal val name: String) : IAppendable {
 
     enum class Kind { CLASS, INTERFACE, OBJECT }
 
-    private var imports = mutableListOf<ClassName>()
+    private var imports = mutableListOf<TypeName>()
     private var fields = mutableListOf<FieldSpec>()
     private var methods = mutableListOf<MethodSpec>()
+    private var parameterized = mutableListOf<ParameterizedName>()
 
     private var modifiers: Array<Modifier> = emptyArray()
 
-    val listImports get() = this.imports.distinctBy { it.canonicalName }
+    val listImports get() = this.imports.distinctBy { (it as ru.alexxxdev.kGen.ClassName).canonicalName }
 
     operator fun Modifier.unaryPlus() {
         modifiers = modifiers.plus(this)
+    }
+
+    operator fun ParameterizedName.unaryPlus() {
+        parameterized.add(this)
     }
 
     fun field(name: String, propertyType: PropertyType = READONLY, valueType: ValueType = NOTNULL, init: FieldSpec.() -> String) = addField(FieldSpec(name, propertyType, valueType), init)
@@ -70,6 +75,24 @@ class ClassSpec(val kind: Kind, internal val name: String) : IAppendable {
                 codeWriter.out("interface $name")
             ClassSpec.Kind.OBJECT ->
                 codeWriter.out("object $name")
+        }
+
+        if (parameterized.isNotEmpty()) {
+            codeWriter.out("<")
+            parameterized.forEachIndexed { index, parameterizedName ->
+                if (index > 0) codeWriter.out(",")
+                if (parameterizedName.name == null) {
+                    parameterizedName.className?.let {
+                        codeWriter.out(it.name)
+                    }
+                } else {
+                    codeWriter.out(parameterizedName.name)
+                    parameterizedName.className?.let {
+                        codeWriter.out(": ${it.name}")
+                    }
+                }
+            }
+            codeWriter.out(">")
         }
 
         codeWriter.out("{")

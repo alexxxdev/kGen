@@ -1,11 +1,8 @@
 package ru.alexxxdev.sample
 
-import ru.alexxxdev.kGen.ClassName
+import ru.alexxxdev.kGen.*
 import ru.alexxxdev.kGen.FieldSpec.PropertyType.MUTABLE
 import ru.alexxxdev.kGen.FieldSpec.ValueType.NULLABLE
-import ru.alexxxdev.kGen.Modifier
-import ru.alexxxdev.kGen.import
-import ru.alexxxdev.kGen.kotlinFile
 import java.io.File
 
 /**
@@ -42,16 +39,20 @@ fun main(args: Array<String>) {
 
         kotlinClass("Class1") {
             +Modifier.PRIVATE
+            val pV = ParameterizedName.get("V", ClassName.get(String::class))
+            +pV
+
             +import(String::class)
 
             field("field11", MUTABLE, NULLABLE) {
-                className = ClassName.get(File::class)
+                className = pV
                 "null"
             }
 
             method("fun11") {
                 +Modifier.INTERNAL
-                returns { "\"test\"" }
+                +"val s = \"123\""
+                returns(pV) { "\"test\"" }
             }
         }
 

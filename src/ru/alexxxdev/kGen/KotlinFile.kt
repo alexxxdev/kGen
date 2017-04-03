@@ -15,7 +15,7 @@ import javax.lang.model.SourceVersion
  * Created by alexxxdev on 28.02.17.
  */
 class KotlinFile(val packageName: String, val fileName: String? = null) : IAppendable {
-    private var imports = mutableListOf<ClassName>()
+    private var imports = mutableListOf<TypeName>()
     private var classes = mutableListOf<ClassSpec>()
     private var fields = mutableListOf<FieldSpec>()
     private var methods = mutableListOf<MethodSpec>()
@@ -77,7 +77,8 @@ class KotlinFile(val packageName: String, val fileName: String? = null) : IAppen
         codeWriter.out("\n\n")
 
         //TODO add aliases
-        imports.distinctBy { it.canonicalName }
+        imports.map { it as ClassName }
+                .distinctBy { it.canonicalName }
                 .sortedBy { it.canonicalName }
                 .forEach {
                     check(SourceVersion.isName(it.canonicalName), "not a valid name: %s", it.canonicalName)

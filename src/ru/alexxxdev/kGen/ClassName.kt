@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 /**
  * Created by alexxxdev on 02.03.17.
  */
-class ClassName private constructor(internal val canonicalName: String, internal val name: String) {
+class ClassName private constructor(internal val canonicalName: String, internal val name: String) : TypeName() {
 
     companion object {
         fun get(packageName: String, name: String): ClassName {

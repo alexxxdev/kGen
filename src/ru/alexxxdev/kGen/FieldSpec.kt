@@ -13,13 +13,13 @@ class FieldSpec(val name: String, val propertyType: PropertyType = READONLY, val
     enum class PropertyType { READONLY, MUTABLE }
     enum class ValueType { NOTNULL, NULLABLE }
 
-    private var imports = mutableListOf<ClassName>()
+    private var imports = mutableListOf<TypeName>()
     private var modifiers: Array<Modifier> = emptyArray()
 
-    var className: ClassName? = null
+    var className: TypeName? = null
     var initializer: String? = null
 
-    val listImports get() = this.imports.distinctBy { it.canonicalName }
+    val listImports get() = this.imports.filter { it is ru.alexxxdev.kGen.ClassName }.distinctBy { (it as ClassName).canonicalName }
 
     operator fun Modifier.unaryPlus() {
         modifiers = modifiers.plus(this)
@@ -49,7 +49,14 @@ class FieldSpec(val name: String, val propertyType: PropertyType = READONLY, val
             }
         }
 
-        className?.let { codeWriter.out(":${it.name}") }
+        when (className) {
+            is ClassName -> {
+                codeWriter.out(": ${(className as ClassName).name}")
+            }
+            is ParameterizedName -> {
+                codeWriter.out(": ${(className as ParameterizedName).name}")
+            }
+        }
 
         if (valueType == NULLABLE) codeWriter.out("?")
 

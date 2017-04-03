@@ -6,15 +6,19 @@ import javax.lang.model.SourceVersion
  * Created by alexxxdev on 09.03.17.
  */
 class MethodSpec(val name: String) : IAppendable {
-    private var imports = mutableListOf<ClassName>()
+    private var imports = mutableListOf<TypeName>()
     private var body: StringBuffer? = null
     private var ret: Returns? = null
 
     private var modifiers: Array<Modifier> = emptyArray()
 
-    internal data class Returns(val value: String, val type: ClassName?)
+    internal data class Returns(var value: String?, val type: TypeName?) {
+        init {
+            if (value == "kotlin.Unit") value = null
+        }
+    }
 
-    val listImports get() = this.imports.distinctBy { it.canonicalName }
+    val listImports get() = this.imports.filter { it is ru.alexxxdev.kGen.ClassName }.map { it as ru.alexxxdev.kGen.ClassName }.distinctBy { (it as ru.alexxxdev.kGen.ClassName).canonicalName }
 
     operator fun Modifier.unaryPlus() {
         modifiers = modifiers.plus(this)
@@ -29,8 +33,8 @@ class MethodSpec(val name: String) : IAppendable {
         modifiers = modifiers.plus(it)
     }
 
-    fun MethodSpec.returns(className: ClassName? = null, init: () -> String) {
-        ret = Returns(init(), className)
+    fun MethodSpec.returns(typeName: TypeName? = null, init: () -> String) {
+        ret = Returns(init(), typeName)
     }
 
     fun build() {
@@ -56,7 +60,14 @@ class MethodSpec(val name: String) : IAppendable {
 
         if (body != null) {
             ret?.let {
-                codeWriter.out(": ${it.type?.name}")
+                when (it.type) {
+                    is ClassName -> {
+                        codeWriter.out(": ${it.type.name}")
+                    }
+                    is ParameterizedName -> {
+                        codeWriter.out(": ${it.type.name}")
+                    }
+                }
             }
             codeWriter.out(" {\n")
             codeWriter.indent()
@@ -69,7 +80,18 @@ class MethodSpec(val name: String) : IAppendable {
             codeWriter.out("\n}")
         } else {
             if (ret != null) {
-                codeWriter.out(" = ${ret?.value}")
+                if (ret?.value == null) {
+                    when (ret?.type) {
+                        is ClassName -> {
+                            codeWriter.out(": ${(ret?.type as ClassName).name}")
+                        }
+                        is ParameterizedName -> {
+                            codeWriter.out(": ${(ret?.type as ParameterizedName).name}")
+                        }
+                    }
+                } else {
+                    codeWriter.out(" = ${ret?.value}")
+                }
             } else {
                 codeWriter.out(" { }")
             }
