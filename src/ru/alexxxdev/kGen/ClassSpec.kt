@@ -1,43 +1,48 @@
 package ru.alexxxdev.kGen
 
+import ru.alexxxdev.kGen.FieldSpec.PropertyType
+import ru.alexxxdev.kGen.FieldSpec.PropertyType.READONLY
+import ru.alexxxdev.kGen.FieldSpec.ValueType
+import ru.alexxxdev.kGen.FieldSpec.ValueType.NOTNULL
+
 /**
  * Created by alexxxdev on 28.02.17.
  */
-class ClassSpec private constructor(builder: Builder) : IAppendable {
+class ClassSpec(val kind: Kind, internal val name: String) : IAppendable {
 
     enum class Kind { CLASS, INTERFACE, OBJECT }
 
-    companion object {
-        fun classBuilder(className: String): Builder {
-            return Builder(Kind.CLASS, className)
-        }
-
-        fun interfaceBuilder(className: String): Builder {
-            return Builder(Kind.INTERFACE, className)
-        }
-
-        fun objectBuilder(className: String): Builder {
-            return Builder(Kind.OBJECT, className)
-        }
-    }
-
-    internal var name: String
-    internal var kind: Kind
-    internal var methods = mutableListOf<MethodSpec>()
-    internal var mods: Array<out Modifier> = emptyArray()
-    internal var fields = mutableListOf<FieldSpec>()
-
     private var imports = mutableListOf<ClassName>()
+    private var fields = mutableListOf<FieldSpec>()
+    private var methods = mutableListOf<MethodSpec>()
+
+    private var modifiers: Array<Modifier> = emptyArray()
 
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
-    init {
-        this.name = builder.name
-        this.kind = builder.kind
-        this.methods = builder.methods
-        this.mods = builder.mods
-        this.fields = builder.fields
+    operator fun Modifier.unaryPlus() {
+        modifiers = modifiers.plus(this)
+    }
 
+    fun field(name: String, propertyType: PropertyType = READONLY, valueType: ValueType = NOTNULL, init: FieldSpec.() -> String) = addField(FieldSpec(name, propertyType, valueType), init)
+    fun method(name: String, vararg mods: Modifier, init: MethodSpec.() -> Unit) = addMethod(MethodSpec(name), mods = *mods, init = init)
+
+    private fun addMethod(methodSpec: MethodSpec, vararg mods: Modifier, init: MethodSpec.() -> Unit): MethodSpec {
+        methodSpec.init()
+        mods.forEach { methodSpec.addModificator(it) }
+        methodSpec.build()
+        methods.add(methodSpec)
+        return methodSpec
+    }
+
+    private fun addField(fieldSpec: FieldSpec, init: FieldSpec.() -> String): FieldSpec {
+        fieldSpec.initializer = fieldSpec.init()
+        fieldSpec.build()
+        fields.add(fieldSpec)
+        return fieldSpec
+    }
+
+    fun build() {
         methods.forEach {
             imports.addAll(it.listImports)
         }
@@ -47,33 +52,8 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         }
     }
 
-    class Builder internal constructor(internal val kind: Kind, internal val name: String) {
-        internal var methods = mutableListOf<MethodSpec>()
-        internal var mods: Array<out Modifier> = emptyArray()
-        internal var fields = mutableListOf<FieldSpec>()
-
-        fun addMethod(methodSpec: MethodSpec): ClassSpec.Builder {
-            methods.add(methodSpec)
-            return this
-        }
-
-        fun addModifiers(vararg modifiers: Modifier): ClassSpec.Builder {
-            mods = modifiers
-            return this
-        }
-
-        fun addField(field: FieldSpec): ClassSpec.Builder {
-            fields.add(field)
-            return this
-        }
-
-        fun build(): ClassSpec {
-            return ClassSpec(this)
-        }
-    }
-
     override fun writeTo(codeWriter: CodeWriter) {
-        mods.forEach {
+        modifiers.forEach {
             when (it) {
                 Modifier.DEFAULT -> {
                 }
@@ -114,3 +94,4 @@ class ClassSpec private constructor(builder: Builder) : IAppendable {
         codeWriter.out("}")
     }
 }
+

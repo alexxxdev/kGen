@@ -10,6 +10,7 @@ enum class Modifier {
     PRIVATE,
     INTERNAL,
     ABSTRACT,
+    INLINE,
     ANNOTATION,
     SEALED,
     OPEN,

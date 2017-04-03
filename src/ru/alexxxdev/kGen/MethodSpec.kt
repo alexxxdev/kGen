@@ -5,50 +5,44 @@ import javax.lang.model.SourceVersion
 /**
  * Created by alexxxdev on 09.03.17.
  */
-class MethodSpec private constructor(builder: Builder) : IAppendable {
-
+class MethodSpec(val name: String) : IAppendable {
     private var imports = mutableListOf<ClassName>()
+    private var body: StringBuffer? = null
+    private var ret: Returns? = null
 
-    internal data class Returns(val value: String, val type: ClassName)
+    private var modifiers: Array<Modifier> = emptyArray()
 
-    internal val name: String
-    internal var ret: Returns? = null
-    internal var body: StringBuffer? = null
-    internal var mods: Array<out Modifier> = emptyArray()
+    internal data class Returns(val value: String, val type: ClassName?)
 
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
-    init {
-        this.name = builder.name
-        this.ret = builder.ret
-        this.mods = builder.mods
-
-        ret?.let { imports.add(it.type) }
+    operator fun Modifier.unaryPlus() {
+        modifiers = modifiers.plus(this)
     }
 
-    class Builder internal constructor(internal val name: String) {
-        internal var ret: Returns? = null
-        internal var mods: Array<out Modifier> = emptyArray()
+    operator fun String.unaryPlus() {
+        if (body == null) body = StringBuffer()
+        body?.append(this)?.append('\n')
+    }
 
-        fun addReturns(value: String, className: ClassName) {
-            ret = Returns(value, className)
-        }
+    internal fun addModificator(it: Modifier) {
+        modifiers = modifiers.plus(it)
+    }
 
-        fun addModifiers(vararg modifiers: Modifier) {
-            mods = modifiers
-        }
+    fun MethodSpec.returns(className: ClassName? = null, init: () -> String) {
+        ret = Returns(init(), className)
+    }
 
-        fun build(): MethodSpec {
-            return MethodSpec(this)
-        }
+    fun build() {
+        ret?.type?.let { imports.add(it) }
     }
 
     override fun writeTo(codeWriter: CodeWriter) {
         check(SourceVersion.isName(name), "not a valid name: %s", name)
-        if (mods.isEmpty()) {
+        if (modifiers.isEmpty()) {
             codeWriter.out("fun $name()")
         } else {
-            mods.forEach {
+            modifiers.forEach {
                 when (it) {
                     Modifier.DEFAULT -> {
                     }
@@ -62,13 +56,17 @@ class MethodSpec private constructor(builder: Builder) : IAppendable {
 
         if (body != null) {
             ret?.let {
-                codeWriter.out(": ${it.type.name}")
+                codeWriter.out(": ${it.type?.name}")
             }
             codeWriter.out(" {\n")
+            codeWriter.indent()
+            codeWriter.out(body.toString())
+
             ret?.let {
-                codeWriter.out("\treturn ${it.value}")
+                codeWriter.out("return ${it.value}")
             }
-            codeWriter.out("}")
+            codeWriter.unindent()
+            codeWriter.out("\n}")
         } else {
             if (ret != null) {
                 codeWriter.out(" = ${ret?.value}")

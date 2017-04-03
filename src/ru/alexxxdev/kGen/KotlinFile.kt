@@ -1,5 +1,10 @@
 package ru.alexxxdev.kGen
 
+import ru.alexxxdev.kGen.ClassSpec.Kind
+import ru.alexxxdev.kGen.FieldSpec.PropertyType
+import ru.alexxxdev.kGen.FieldSpec.PropertyType.READONLY
+import ru.alexxxdev.kGen.FieldSpec.ValueType
+import ru.alexxxdev.kGen.FieldSpec.ValueType.NOTNULL
 import java.io.File
 import java.io.OutputStreamWriter
 import java.nio.file.Files
@@ -9,31 +14,51 @@ import javax.lang.model.SourceVersion
 /**
  * Created by alexxxdev on 28.02.17.
  */
-class KotlinFile private constructor(builder: Builder) : IAppendable {
+class KotlinFile(val packageName: String, val fileName: String? = null) : IAppendable {
+    private var imports = mutableListOf<ClassName>()
+    private var classes = mutableListOf<ClassSpec>()
+    private var fields = mutableListOf<FieldSpec>()
+    private var methods = mutableListOf<MethodSpec>()
 
-    companion object {
-        fun builder(packageName: String, name: String?): Builder {
-            return Builder(packageName, name)
-        }
+    var indent = "\t"
+
+    operator fun ClassName.unaryPlus() {
+        imports.add(this)
     }
 
-    internal val packageName: String
-    internal val fileName: String?
-    internal var classes = mutableListOf<ClassSpec>()
-    internal var imports = mutableListOf<ClassName>()
-    internal var methods = mutableListOf<MethodSpec>()
-    internal var fields = mutableListOf<FieldSpec>()
-    internal val indent: String
+    fun kotlinClass(className: String, init: ClassSpec.() -> Unit) = addClass(ClassSpec(Kind.CLASS, className), init)
 
-    init {
-        this.packageName = builder.packageName
-        this.fileName = builder.name
-        this.classes = builder.classes
-        this.imports = builder.imports
-        this.methods = builder.methods
-        this.fields = builder.fields
-        this.indent = builder.indent
+    fun kotlinInterface(className: String, init: ClassSpec.() -> Unit) = addClass(ClassSpec(Kind.INTERFACE, className), init)
 
+    fun kotlinObject(className: String, init: ClassSpec.() -> Unit) = addClass(ClassSpec(Kind.OBJECT, className), init)
+
+    fun field(name: String, propertyType: PropertyType = READONLY, valueType: ValueType = NOTNULL, init: FieldSpec.() -> String) = addField(FieldSpec(name, propertyType, valueType), init)
+
+    fun method(name: String, vararg mods: Modifier, init: MethodSpec.() -> Unit) = addMethod(MethodSpec(name), *mods, init = init)
+
+    private fun addClass(classSpec: ClassSpec, init: ClassSpec.() -> Unit): ClassSpec {
+        classSpec.init()
+        classSpec.build()
+        classes.add(classSpec)
+        return classSpec
+    }
+
+    private fun addField(fieldSpec: FieldSpec, init: FieldSpec.() -> String): FieldSpec {
+        fieldSpec.initializer = fieldSpec.init()
+        fieldSpec.build()
+        fields.add(fieldSpec)
+        return fieldSpec
+    }
+
+    private fun addMethod(methodSpec: MethodSpec, vararg mods: Modifier, init: MethodSpec.() -> Unit): MethodSpec {
+        methodSpec.init()
+        mods.forEach { methodSpec.addModificator(it) }
+        methodSpec.build()
+        methods.add(methodSpec)
+        return methodSpec
+    }
+
+    fun build() {
         classes.forEach {
             imports.addAll(it.listImports)
         }
@@ -44,47 +69,6 @@ class KotlinFile private constructor(builder: Builder) : IAppendable {
 
         fields.forEach {
             imports.addAll(it.listImports)
-        }
-    }
-
-    class Builder internal constructor(internal val packageName: String, internal val name: String?) {
-        internal val classes = mutableListOf<ClassSpec>()
-        internal var imports = mutableListOf<ClassName>()
-        internal var methods = mutableListOf<MethodSpec>()
-        internal var fields = mutableListOf<FieldSpec>()
-        internal var indent = "\t"
-
-        fun addClass(cls: ClassSpec): Builder {
-            classes.add(cls)
-            return this
-        }
-
-        fun addImport(cln: ClassName): Builder {
-            imports.add(cln)
-            return this
-        }
-
-        fun addImports(vararg cln: ClassName): Builder {
-            imports.addAll(cln)
-            return this
-        }
-
-        fun addMethod(methodSpec: MethodSpec): Builder {
-            methods.add(methodSpec)
-            return this
-        }
-
-        fun build(): KotlinFile {
-            return KotlinFile(this)
-        }
-
-        fun addIndent(indent: String): Builder {
-            this.indent = indent
-            return this
-        }
-
-        fun addField(field: FieldSpec) {
-            fields.add(field)
         }
     }
 

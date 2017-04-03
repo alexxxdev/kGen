@@ -1,57 +1,46 @@
 package ru.alexxxdev.kGen
 
+import ru.alexxxdev.kGen.FieldSpec.PropertyType.MUTABLE
+import ru.alexxxdev.kGen.FieldSpec.PropertyType.READONLY
+import ru.alexxxdev.kGen.FieldSpec.ValueType.NOTNULL
+import ru.alexxxdev.kGen.FieldSpec.ValueType.NULLABLE
+
 /**
  * Created by alexxxdev on 09.03.17.
  */
-class FieldSpec private constructor(builder: Builder) : IAppendable {
+class FieldSpec(val name: String, val propertyType: PropertyType = READONLY, val valueType: ValueType = NOTNULL) : IAppendable {
+
+    enum class PropertyType { READONLY, MUTABLE }
+    enum class ValueType { NOTNULL, NULLABLE }
 
     private var imports = mutableListOf<ClassName>()
+    private var modifiers: Array<Modifier> = emptyArray()
+
+    var className: ClassName? = null
+    var initializer: String? = null
 
     val listImports get() = this.imports.distinctBy { it.canonicalName }
 
-    internal var name: String
-    private var type: Int
-    private var typeValue: Int
-    private var initializer: String? = null
-    private var className: ClassName? = null
-
-    companion object {
-        const val NOTNULL = 0
-        const val NULLABLE = 1
-        const val MUTABLE = 2
-        const val READONLY = 3
+    operator fun Modifier.unaryPlus() {
+        modifiers = modifiers.plus(this)
     }
 
-    init {
-        this.name = builder.name
-        this.type = builder.type
-        this.typeValue = builder.typeValue
-        this.initializer = builder.initializer
-        this.className = builder.className
+    fun build() {
         className?.let { imports.add(it) }
     }
 
-    class Builder internal constructor(internal val name: String, internal val type: Int, internal val typeValue: Int) {
-        internal var initializer: String? = null
-        internal var className: ClassName? = null
-
-        fun initializer(init: String): Builder {
-            this.initializer = init
-            return this
-        }
-
-        fun className(className: ClassName): Builder {
-            this.className = className
-            return this
-        }
-
-        fun build(): FieldSpec {
-            return FieldSpec(this)
-        }
-    }
-
     override fun writeTo(codeWriter: CodeWriter) {
-        when (type) {
+        modifiers.forEach {
+            when (it) {
+                Modifier.DEFAULT -> {
+                }
+                else -> {
+                    codeWriter.out("${it.name.toLowerCase()} ")
+                }
+            }
+        }
+
+        when (propertyType) {
             MUTABLE -> {
                 codeWriter.out("var $name")
             }
@@ -62,7 +51,7 @@ class FieldSpec private constructor(builder: Builder) : IAppendable {
 
         className?.let { codeWriter.out(":${it.name}") }
 
-        if (typeValue == NULLABLE) codeWriter.out("?")
+        if (valueType == NULLABLE) codeWriter.out("?")
 
         initializer?.let { codeWriter.out(" = $it") }
     }

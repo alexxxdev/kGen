@@ -6,54 +6,50 @@ example:
 ```kotlin
 val file = File("src")
 kotlinFile("ru.alexxxdev.sample", "Test") {
-    indent("\t")
+        indent = "\t"
 
-    import(String::class)
+        +import(String::class)
+        +import(ClassName.get(File::class))
 
-    field("field1", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
-        className(ClassName.get(File::class))
-        init { "null" }
-    }
-
-    field("field2", FieldSpec.READONLY, FieldSpec.NOTNULL) {
-        init { "0" }
-    }
-
-    kotlinClass("Class1") {
-        modifiers(Modifier.OPEN)
-
-        field("field1", FieldSpec.MUTABLE, FieldSpec.NULLABLE) {
-            className(ClassName.get(File::class))
-            init { "null" }
+        field("field1", MUTABLE, NULLABLE) {
+            className = ClassName.get(File::class)
+            "null"
         }
 
-        field("field2", FieldSpec.MUTABLE, FieldSpec.NOTNULL) {
-            className(ClassName.get(File::class))
-            init { "File(\"test.txt\")" }
+        field("field2") {
+            +Modifier.PRIVATE
+            "0"
         }
 
-        method("fun1") {
-            modifiers(Modifier.OPEN)
-            returns("0", ClassName.get(Int::class))
+        method("fun2") {
+            +import(String::class)
+            +"val s = \"123\""
+            returns(ClassName.get(String::class)){ "s"  }
         }
-    }
 
-    kotlinInterface("Interface1") {
-        modifiers(Modifier.ABSTRACT)
-        method("fun1") {
-            returns(".05f", ClassName.get(Float::class))
+        method("fun1", Modifier.INTERNAL) {
+            returns{ "\"test\""	}
         }
-        method("fun2") {}
-    }
 
-    kotlinObject("Object1") {
-        modifiers(Modifier.PRIVATE)
-        method("fun1") {}
-    }
+        kotlinClass("Class1") {
+            +Modifier.PRIVATE
+            +import(String::class)
 
-    method("fun1") {
-        returns("\"test\"", ClassName.get(String::class))
-    }
-    method("fun2") {}
+            field("field11", MUTABLE, NULLABLE) {
+                className = ClassName.get(File::class)
+                "null"
+            }
 
-}.writeTo(file)
+            method("fun11") {
+                +Modifier.INTERNAL
+                returns{ "\"test\""	}
+            }
+        }
+
+        kotlinInterface("Interface1") {
+        }
+
+        kotlinObject("Object1") {
+        }
+
+    }.writeTo(file)
